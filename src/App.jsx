@@ -21,13 +21,18 @@ function App() {
     const [isLoading, setIsLoading] = useState(false)
     const [genres, setGenres] = useState({})
 
-    async function fetchMovies() {
+    async function fetchMovies(query) {
 
         setIsLoading(true)
         setError('')
 
         try {
-            const endpoint = `${API_BASE_URL}/discover/movie?include_adult=false&include_video=false&language=en-US&page=1&sort_by=popularity.desc`
+            let endpoint = `${API_BASE_URL}/discover/movie?include_adult=false&include_video=false&language=en-US&page=1&sort_by=popularity.desc`
+
+            if (query) {
+                endpoint = `${API_BASE_URL}/search/movie?query=${encodeURIComponent(query)}&include_adult=false&language=en-US&page=1`
+
+            }
             const response = await fetch(endpoint, API_OPTIONS)
 
             if (!response.ok) {
@@ -82,9 +87,9 @@ function App() {
     }
 
     useEffect(() => {
-        fetchMovies()
+        fetchMovies(searchTerm)
         fetchGenres()
-    }, [])
+    }, [searchTerm])
 
     return (
         <main>
@@ -111,10 +116,10 @@ function App() {
                                 {movies.map((movie) => (
                                     <Card
                                         key={movie.id}
-                                        poster={`https://image.tmdb.org/t/p/w500${movie.poster_path}`}
+                                        poster={movie.poster_path ? `https://image.tmdb.org/t/p/w500${movie.poster_path}` : 'no-movie.png'}
                                         title={movie.title}
-                                        rating={movie.vote_average}
-                                        genre={genres[movie.genre_ids[0]]}
+                                        rating={movie.vote_average ? movie.vote_average: 0}
+                                        genre={ (movie.genre_ids === undefined || movie.genre_ids.length === 0) ? 'Unknown' : genres[movie.genre_ids[0]] }
                                         type='Movie'
                                     />
                                 ))}
