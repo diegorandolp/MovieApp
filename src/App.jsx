@@ -1,7 +1,7 @@
 import {useState, useEffect} from 'react'
 import Search from './components/Search'
 import Spinner from "./components/Spinner.jsx"
-
+import Card from './components/Card'
 
 const API_BASE_URL = 'https://api.themoviedb.org/3';
 const API_KEY = import.meta.env.VITE_TMDB_API_KEY;
@@ -19,6 +19,7 @@ function App() {
     const [error, setError] = useState('')
     const [movies, setMovies] = useState([])
     const [isLoading, setIsLoading] = useState(false)
+    const [genres, setGenres] = useState({})
 
     async function fetchMovies() {
 
@@ -52,8 +53,37 @@ function App() {
     }
 
 
+    async function fetchGenres() {
+
+        try {
+            const endpoint = `${API_BASE_URL}/genre/movie/list`
+            const response = await fetch(endpoint, API_OPTIONS)
+
+            if (!response.ok) {
+                throw new Error('An error occurred while fetching genres.')
+            }
+
+            const data = await response.json()
+            console.log(data)
+
+            if (data.Response === 'False') {
+                setGenres([])
+                return;
+            }
+            let temp = {}
+            for (let genre of data.genres){
+                temp[genre.id] = genre.name
+            }
+
+            setGenres(temp || [])
+        } catch (error) {
+            console.error(`Error in fetchMovies: ${error}`)
+        }
+    }
+
     useEffect(() => {
         fetchMovies()
+        fetchGenres()
     }, [])
 
     return (
@@ -79,7 +109,14 @@ function App() {
                             (<p className="text-red-500">{error}</p>) :
                             (<ul>
                                 {movies.map((movie) => (
-                                    <p key={movie.id} className="text-white">{movie.title}</p>
+                                    <Card
+                                        key={movie.id}
+                                        poster={`https://image.tmdb.org/t/p/w500${movie.poster_path}`}
+                                        title={movie.title}
+                                        rating={movie.vote_average}
+                                        genre={genres[movie.genre_ids[0]]}
+                                        type='Movie'
+                                    />
                                 ))}
                             </ul>)}
                 </section>
