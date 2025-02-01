@@ -2,6 +2,7 @@ import {useState, useEffect} from 'react'
 import Search from './components/Search'
 import Spinner from "./components/Spinner.jsx"
 import Card from './components/Card'
+import {useDebounce} from "react-use";
 
 const API_BASE_URL = 'https://api.themoviedb.org/3';
 const API_KEY = import.meta.env.VITE_TMDB_API_KEY;
@@ -20,6 +21,10 @@ function App() {
     const [movies, setMovies] = useState([])
     const [isLoading, setIsLoading] = useState(false)
     const [genres, setGenres] = useState({})
+    const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('')
+
+
+    useDebounce(() => {setDebouncedSearchTerm(searchTerm)}, 500, [searchTerm])
 
     async function fetchMovies(query) {
 
@@ -87,9 +92,9 @@ function App() {
     }
 
     useEffect(() => {
-        fetchMovies(searchTerm)
+        fetchMovies(debouncedSearchTerm)
         fetchGenres()
-    }, [searchTerm])
+    }, [debouncedSearchTerm])
 
     return (
         <main>
@@ -102,6 +107,9 @@ function App() {
                     <h1>Find <span className="text-gradient">movies</span> that you will enjoy</h1>
                 </header>
 
+                <div className="trending">
+
+                </div>
 
                 <Search searchTerm={searchTerm} setSearchTerm={(newTerm) => {
                     setSearchTerm(newTerm)
